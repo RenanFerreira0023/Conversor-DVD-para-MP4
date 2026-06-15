@@ -6,6 +6,21 @@ import subprocess
 from pathlib import Path
 
 
+COMMON_FFMPEG_PATHS = [Path(r"C:\ffmpeg\bin\ffmpeg.exe")]
+
+
+def find_ffmpeg() -> str | None:
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg:
+        return ffmpeg
+
+    for path in COMMON_FFMPEG_PATHS:
+        if path.exists():
+            return str(path)
+
+    return None
+
+
 def find_movie_vobs(video_ts: Path) -> list[Path]:
     vobs = sorted(video_ts.glob("VTS_*_[1-9].VOB"))
     if not vobs:
@@ -18,7 +33,7 @@ def build_concat_input(vobs: list[Path]) -> str:
 
 
 def repair(video_ts: Path, output: Path) -> int:
-    ffmpeg = shutil.which("ffmpeg")
+    ffmpeg = find_ffmpeg()
     if not ffmpeg:
         print("ERRO: ffmpeg nao encontrado no PATH.")
         print("Instale o FFmpeg ou adicione C:\\ffmpeg\\bin ao PATH.")

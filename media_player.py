@@ -37,6 +37,20 @@ console_handler.setFormatter(log_formatter)
 logger.addHandler(console_handler)
 
 VLC_SEARCH_PATHS: list[Path] = []
+COMMON_FFMPEG_BIN = Path(r"C:\ffmpeg\bin")
+
+
+def find_media_tool(name: str) -> str | None:
+    tool = shutil.which(name)
+    if tool:
+        return tool
+
+    suffix = ".exe" if platform.system() == "Windows" else ""
+    fallback = COMMON_FFMPEG_BIN / f"{name}{suffix}"
+    if fallback.exists():
+        return str(fallback)
+
+    return None
 
 
 def add_vlc_dll_paths() -> None:
@@ -607,7 +621,7 @@ class MediaPlayerApp(tk.Tk):
         return True
 
     def _probe_duration(self, path: Path) -> tuple[int | None, str]:
-        ffprobe = shutil.which("ffprobe")
+        ffprobe = find_media_tool("ffprobe")
         if ffprobe:
             try:
                 completed = subprocess.run(
@@ -685,7 +699,7 @@ class MediaPlayerApp(tk.Tk):
         )
 
     def _probe_duration_by_counting_frames(self, path: Path) -> int | None:
-        ffprobe = shutil.which("ffprobe")
+        ffprobe = find_media_tool("ffprobe")
         if not ffprobe:
             return None
 

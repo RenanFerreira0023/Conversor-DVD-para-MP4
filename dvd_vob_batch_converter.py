@@ -18,6 +18,7 @@ from typing import Callable
 
 
 DEFAULT_REPORT_NAME = "relatorio_conversao_dvds.txt"
+COMMON_FFMPEG_PATHS = [Path(r"C:\ffmpeg\bin\ffmpeg.exe")]
 
 
 @dataclass
@@ -57,6 +58,18 @@ def run_command(command: list[str], capture: bool) -> subprocess.CompletedProces
     if capture:
         return subprocess.run(command, check=False, capture_output=True, text=True)
     return subprocess.run(command, check=False, text=True)
+
+
+def find_ffmpeg() -> str | None:
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg:
+        return ffmpeg
+
+    for path in COMMON_FFMPEG_PATHS:
+        if path.exists():
+            return str(path)
+
+    return None
 
 
 def format_duration(seconds: float) -> str:
@@ -184,7 +197,7 @@ def process(
     dry_run: bool,
     log: Callable[[str], None] = print,
 ) -> int:
-    ffmpeg = shutil.which("ffmpeg")
+    ffmpeg = find_ffmpeg()
     if not ffmpeg and not dry_run:
         log("ERRO: ffmpeg nao encontrado no PATH.")
         log("Instale o FFmpeg ou adicione C:\\ffmpeg\\bin ao PATH.")
